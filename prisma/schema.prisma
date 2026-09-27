@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Usuario {
+  id           String           @id @default(cuid())
+  username     String           @unique @db.VarChar(32)
+  passwordHash String
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  roles        UsuarioRol[]
+  partidas     UsuarioPartida[]
+}
+
+model Rol {
+  id        String       @id @default(cuid())
+  nombre    String       @unique @db.VarChar(32)
+  usuarios  UsuarioRol[]
+}
+
+model UsuarioRol {
+  usuarioId String
+  rolId     String
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  rol       Rol     @relation(fields: [rolId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, rolId])
+  @@index([rolId])
+}
+
+model Partida {
+  id        String           @id @default(cuid())
+  roomId    String           @unique @db.VarChar(32)
+  started   Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  jugadores UsuarioPartida[]
+}
+
+model UsuarioPartida {
+  usuarioId   String
+  partidaId   String
+  horaInicio  DateTime
+  horaFin     DateTime?
+  fechaPartida DateTime       @db.Date
+  usuario     Usuario         @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  partida     Partida         @relation(fields: [partidaId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, partidaId])
+  @@index([partidaId])
+  @@index([fechaPartida])
+}
